@@ -7,7 +7,7 @@ use byteorder::{BigEndian, ByteOrder};
 use gethostname::gethostname;
 #[cfg(all(unix, not(target_os = "redox")))]
 use nix::unistd::sethostname;
-use socket2::{Domain, Socket, Type as SocketType};
+use socket2::{Domain, Protocol, Socket, Type as SocketType};
 
 use super::os::convert_io_error;
 #[cfg(unix)]
@@ -92,28 +92,17 @@ impl PySocket {
                 unsafe { Socket::from_raw_socket(fileno) }
             }
         } else {
-            let domain = match family {
-                c::AF_INET => Domain::ipv4(),
-                c::AF_INET6 => Domain::ipv6(),
-                #[cfg(unix)]
-                c::AF_UNIX => Domain::unix(),
-                _ => {
-                    return Err(vm.new_os_error(format!("Unknown address family value: {}", family)))
-                }
-            };
+            let sock = Socket::new(
+                Domain::from(family),
+                SocketType::from(socket_kind),
+                Some(Protocol::from(proto)),
+            )
+            .map_err(|err| convert_sock_error(vm, err))?;
+
             self.family.set(family);
-            let socket_type = match socket_kind {
-                c::SOCK_STREAM => SocketType::stream(),
-                c::SOCK_DGRAM => SocketType::dgram(),
-                _ => {
-                    return Err(
-                        vm.new_os_error(format!("Unknown socket kind value: {}", socket_kind))
-                    )
-                }
-            };
             self.kind.set(socket_kind);
             self.proto.set(proto);
-            Socket::new(domain, socket_type, None).map_err(|err| convert_sock_error(vm, err))?
+            sock
         };
         self.sock.replace(sock);
         Ok(())
@@ -435,6 +424,7 @@ pub fn make_module(vm: &VirtualMachine) -> PyObjectRef {
         "error" => ctx.exceptions.os_error.clone(),
         "timeout" => socket_timeout,
         "gaierror" => socket_gaierror,
+        "AF_UNSPEC" => ctx.new_int(0),
         "AF_INET" => ctx.new_int(c::AF_INET),
         "AF_INET6" => ctx.new_int(c::AF_INET6),
         "SOCK_STREAM" => ctx.new_int(c::SOCK_STREAM),
@@ -446,6 +436,7 @@ pub fn make_module(vm: &VirtualMachine) -> PyObjectRef {
         "MSG_PEEK" => ctx.new_int(c::MSG_PEEK),
         "MSG_WAITALL" => ctx.new_int(c::MSG_WAITALL),
         "AI_ALL" => ctx.new_int(c::AI_ALL),
+        "AI_PASSIVE" => ctx.new_int(c::AI_PASSIVE),
         "socket" => PySocket::make_class(ctx),
         "inet_aton" => ctx.new_rustfunc(socket_inet_aton),
         "inet_ntoa" => ctx.new_rustfunc(socket_inet_ntoa),
