@@ -16,7 +16,8 @@ import pickle
 import socket
 import sys
 
-from . import context
+from .context import *
+context = sys.modules[__name__]
 
 __all__ = ['send_handle', 'recv_handle', 'ForkingPickler', 'register', 'dump']
 
