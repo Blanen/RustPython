@@ -320,7 +320,7 @@ class SelectSelector(_BaseSelectorImpl):
         timeout = None if timeout is None else max(timeout, 0)
         ready = []
         try:
-            r, w, _ = self._select(self._readers, self._writers, [], timeout)
+            r, w, _ = type(self)._select(self._readers, self._writers, [], timeout)
         except InterruptedError:
             return ready
         r = set(r)
