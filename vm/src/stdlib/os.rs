@@ -21,6 +21,7 @@ use nix::pty::openpty;
 #[cfg(unix)]
 use nix::unistd::{self, Gid, Pid, Uid, Whence};
 
+use super::errno::errors;
 use crate::function::{IntoPyNativeFunc, OptionalArg, PyFuncArgs};
 use crate::obj::objbytes::PyBytesRef;
 use crate::obj::objdict::PyDictRef;
@@ -152,17 +153,17 @@ pub fn os_open(vm: &VirtualMachine, args: PyFuncArgs) -> PyResult {
 }
 
 pub fn convert_io_error(vm: &VirtualMachine, err: io::Error) -> PyObjectRef {
-    #[allow(unreachable_patterns)]
+    #[allow(unreachable_patterns)] // some errors are just aliases of each other
     let exc_type = match err.kind() {
         ErrorKind::NotFound => vm.ctx.exceptions.file_not_found_error.clone(),
         ErrorKind::PermissionDenied => vm.ctx.exceptions.permission_error.clone(),
         ErrorKind::AlreadyExists => vm.ctx.exceptions.file_exists_error.clone(),
         ErrorKind::WouldBlock => vm.ctx.exceptions.blocking_io_error.clone(),
         _ => match err.raw_os_error() {
-            Some(libc::EAGAIN)
-            | Some(libc::EALREADY)
-            | Some(libc::EWOULDBLOCK)
-            | Some(libc::EINPROGRESS) => vm.ctx.exceptions.blocking_io_error.clone(),
+            Some(errors::EAGAIN)
+            | Some(errors::EALREADY)
+            | Some(errors::EWOULDBLOCK)
+            | Some(errors::EINPROGRESS) => vm.ctx.exceptions.blocking_io_error.clone(),
             _ => vm.ctx.exceptions.os_error.clone(),
         },
     };
