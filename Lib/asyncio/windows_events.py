@@ -1,11 +1,13 @@
 """Selector and proactor event loops for Windows."""
 
-import _winapi
+# XXX RustPython TODO: _winapi
+# import _winapi
 import errno
 import math
 import socket
 import struct
 import weakref
+import socket
 
 from . import events
 from . import base_subprocess
@@ -13,8 +15,9 @@ from . import futures
 from . import proactor_events
 from . import selector_events
 from . import tasks
-from . import windows_utils
-from . import _overlapped
+# XXX RustPython TODO
+# from . import windows_utils
+# from . import _overlapped
 from .coroutines import coroutine
 from .log import logger
 
@@ -297,7 +300,7 @@ class _WindowsSelectorEventLoop(selector_events.BaseSelectorEventLoop):
     """Windows version of selector event loop."""
 
     def _socketpair(self):
-        return windows_utils.socketpair()
+        return socket.socketpair()
 
 
 class ProactorEventLoop(proactor_events.BaseProactorEventLoop):
@@ -309,7 +312,7 @@ class ProactorEventLoop(proactor_events.BaseProactorEventLoop):
         super().__init__(proactor)
 
     def _socketpair(self):
-        return windows_utils.socketpair()
+        return socket.socketpair()
 
     @coroutine
     def create_pipe_connection(self, protocol_factory, address):

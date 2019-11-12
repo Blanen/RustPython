@@ -67,7 +67,8 @@ def dump(obj, file, protocol=None):
 if sys.platform == 'win32':
     # Windows
     __all__ += ['DupHandle', 'duplicate', 'steal_handle']
-    import _winapi
+    # XXX RustPython TODO: _winapi
+    # import _winapi
 
     def duplicate(handle, target_process=None, inheritable=False):
         '''Duplicate a handle.  (target_process is a handle not a pid!)'''

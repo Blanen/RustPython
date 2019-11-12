@@ -30,8 +30,9 @@ try:
     import _winapi
     from _winapi import WAIT_OBJECT_0, WAIT_ABANDONED_0, WAIT_TIMEOUT, INFINITE
 except ImportError:
-    if sys.platform == 'win32':
-        raise
+    # XXX RustPython TODO: _winapi
+    # if sys.platform == 'win32':
+    #     raise
     _winapi = None
 
 #
@@ -780,7 +781,8 @@ def XmlClient(*args, **kwds):
 # Wait
 #
 
-if sys.platform == 'win32':
+# XXX RustPython TODO: _winapi
+if sys.platform == 'win32' and _winapi:
 
     def _exhaustive_wait(handles, timeout):
         # Return ALL handles which are currently signalled.  (Only
@@ -941,7 +943,8 @@ if sys.platform == 'win32':
     def rebuild_pipe_connection(dh, readable, writable):
         handle = dh.detach()
         return PipeConnection(handle, readable, writable)
-    reduction.register(PipeConnection, reduce_pipe_connection)
+    # XXX RustPython TODO: _winapi
+    # reduction.register(PipeConnection, reduce_pipe_connection)
 
 else:
     def reduce_connection(conn):

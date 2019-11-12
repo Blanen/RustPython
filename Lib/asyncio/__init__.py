@@ -5,7 +5,8 @@
 import sys
 
 import selectors
-if sys.platform == 'win32':
+# XXX RustPython TODO: _overlapped
+if sys.platform == 'win32' and False:
     # Similar thing for _overlapped.
     try:
         from . import _overlapped
